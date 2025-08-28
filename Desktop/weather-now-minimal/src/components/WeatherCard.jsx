@@ -1,36 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Map Open-Meteo weather codes to human-readable descriptions
+/**
+ * WeatherCard
+ * Shows current weather details from Open-Meteo's current_weather response.
+ *
+ * Expected props:
+ *  - data: {temperature, windspeed, winddirection, weathercode, name, country, precipitation?}
+ *  - unit: 'metric'|'imperial'
+ */
+
 const weatherCodeMap = {
-  0: 'Clear sky',
-  1: 'Mainly clear',
-  2: 'Partly cloudy',
-  3: 'Overcast',
-  45: 'Fog',
-  48: 'Depositing rime fog',
-  51: 'Drizzle: Light',
-  53: 'Drizzle: Moderate',
-  55: 'Drizzle: Dense',
-  56: 'Freezing Drizzle: Light',
-  57: 'Freezing Drizzle: Dense',
-  61: 'Rain: Slight',
-  63: 'Rain: Moderate',
-  65: 'Rain: Heavy',
-  66: 'Freezing Rain: Light',
-  67: 'Freezing Rain: Heavy',
-  71: 'Snow fall: Slight',
-  73: 'Snow fall: Moderate',
-  75: 'Snow fall: Heavy',
-  77: 'Snow grains',
-  80: 'Rain showers: Slight',
-  81: 'Rain showers: Moderate',
-  82: 'Rain showers: Violent',
-  85: 'Snow showers: Slight',
-  86: 'Snow showers: Heavy',
-  95: 'Thunderstorm: Slight/Moderate',
-  96: 'Thunderstorm with slight hail',
-  99: 'Thunderstorm with heavy hail',
+  0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+  45: 'Fog', 48: 'Depositing rime fog',
+  51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
+  61: 'Rain: Slight', 63: 'Rain: Moderate', 65: 'Rain: Heavy',
+  71: 'Snow: Slight', 73: 'Snow: Moderate', 75: 'Snow: Heavy',
+  80: 'Rain showers', 81: 'Rain showers: Moderate', 82: 'Violent showers',
+  95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with heavy hail'
 };
 
 const WeatherCard = ({ data, unit }) => {
@@ -38,35 +25,47 @@ const WeatherCard = ({ data, unit }) => {
 
   const tempUnit = unit === 'metric' ? '°C' : '°F';
   const speedUnit = unit === 'metric' ? 'km/h' : 'mph';
-  const weatherDesc = weatherCodeMap[data.weathercode] || 'Unknown';
+  const desc = weatherCodeMap[data.weathercode] || 'Unknown';
+
+  // Precip not always present from current_weather; some APIs provide it separately
+  const precipitation = data.precipitation ?? null;
 
   return (
-    <motion.div
-      className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl p-6 w-full max-w-md flex flex-col items-center space-y-4 text-center"
-      initial={{ opacity: 0, y: 20 }}
+    <motion.section
+      aria-label={`Current weather for ${data.name || 'your location'}`}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.45 }}
+      className="bg-white/80 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl p-6 w-full max-w-md mt-4"
     >
-      <h2 className="text-2xl font-semibold">{data.name || 'Current Location'}</h2>
-      <p className="text-lg text-gray-700 dark:text-gray-300">{data.country || ''}</p>
+      <header className="text-center mb-4">
+        <h3 className="text-2xl font-semibold">{data.name || 'Current Location'}</h3>
+        {data.country && <p className="text-sm text-gray-600 dark:text-gray-300">{data.country}</p>}
+      </header>
 
-      <div className="text-6xl font-bold">{Math.round(data.temperature)}{tempUnit}</div>
-      <p className="text-lg font-medium">{weatherDesc}</p>
+      <div className="flex flex-col items-center gap-3">
+        <div className="text-5xl font-bold">{Math.round(data.temperature)}{tempUnit}</div>
+        <div className="text-lg font-medium">{desc}</div>
 
-      <div className="flex justify-around w-full mt-4">
-        <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Wind</p>
-          <p className="font-medium">{Math.round(data.windspeed)} {speedUnit}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{data.winddirection}°</p>
-        </div>
-        {data.precipitation !== undefined && (
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Precipitation</p>
-            <p className="font-medium">{data.precipitation} mm</p>
+        <div className="w-full flex justify-between mt-4 text-sm">
+          <div className="text-center">
+            <div className="text-xs text-gray-600 dark:text-gray-300">Wind</div>
+            <div className="font-medium">{Math.round(data.windspeed)} {speedUnit}</div>
+            <div className="text-xs text-gray-500">{Math.round(data.winddirection)}°</div>
           </div>
-        )}
+
+          <div className="text-center">
+            <div className="text-xs text-gray-600 dark:text-gray-300">Precipitation</div>
+            <div className="font-medium">{precipitation !== null ? `${precipitation} mm` : 'N/A'}</div>
+          </div>
+
+          <div className="text-center">
+            <div className="text-xs text-gray-600 dark:text-gray-300">Time</div>
+            <div className="font-medium">{new Date(data.time).toLocaleTimeString()}</div>
+          </div>
+        </div>
       </div>
-    </motion.div>
+    </motion.section>
   );
 };
 
