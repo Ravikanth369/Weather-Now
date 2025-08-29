@@ -25,5 +25,13 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "codesandbox": {
+    "node": "18",
+    "environmentVariables": {
+      "VITE_OPENWEATHER_API_KEY": ""
+    },
+    "buildCommand": "npm install && npm run build",
+    "startCommand": "npm run dev"
   }
 }
